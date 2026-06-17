@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>XOR — Neural Network Visualizations</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0f1117;
+    color: #cdd6f4;
+    font-family: 'Courier New', monospace;
+    padding: 32px 24px 48px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 18px;
+    letter-spacing: 3px;
+    color: #cdd6f4;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 11px;
+    color: #45475a;
+    margin-bottom: 40px;
+    letter-spacing: 1px;
+  }
+  .section {
+    margin-bottom: 44px;
+  }
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-left: 4px;
+    border-left: 3px solid;
+    padding-left: 10px;
+  }
+  .section-label.blue   { color: #89b4fa; border-color: #89b4fa; }
+  .section-label.purple { color: #cba6f7; border-color: #cba6f7; }
+  .section-label.yellow { color: #f9e2af; border-color: #f9e2af; }
+
+  .row {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .panel {
+    background: #1e1e2e;
+    border-radius: 12px;
+    padding: 20px 20px 14px;
+    border: 1px solid #313244;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .panel-title {
+    font-size: 13px;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .ok   { color: #a6e3a1; }
+  .fail { color: #f38ba8; }
+  .caption {
+    font-size: 10px;
+    color: #585b70;
+    margin-top: 10px;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .legend-row {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+  .legend-item {
+    font-size: 10px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dot { width:11px; height:11px; border-radius:50%; display:inline-block; flex-shrink:0; }
+  .dash { width:22px; height:2px; display:inline-block; flex-shrink:0; }
+  hr.divider {
+    border: none;
+    border-top: 1px solid #1e1e2e;
+    margin: 0 0 44px 0;
+  }
+</style>
+</head>
+<body>
+
+<h1>XOR &amp; NEURAL NETWORKS</h1>
+<p class="subtitle">from single perceptron to multilayer — a visual guide</p>
+
+<!-- ═══════════════════════════════════════
+     SECTION 1 — Linear Separability
+════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-label blue">01 — Linear Decision Boundary</p>
+  <div class="row">
+    <div class="panel">
+      <p class="panel-title ok">AND &nbsp;✓</p>
+      <canvas id="c-and" width="200" height="200"></canvas>
+      <p class="caption">Linearly separable.<br>One line splits the classes.</p>
+    </div>
+    <div class="panel">
+      <p class="panel-title ok">OR &nbsp;✓</p>
+      <canvas id="c-or" width="200" height="200"></canvas>
+      <p class="caption">Linearly separable.<br>One line splits the classes.</p>
+    </div>
+    <div class="panel">
+      <p class="panel-title fail">XOR &nbsp;✗</p>
+      <canvas id="c-xor" width="200" height="200"></canvas>
+      <p class="caption">NOT linearly separable.<br>No single line can split it.</p>
+    </div>
+  </div>
+  <div class="legend-row">
+    <span class="legend-item"><span class="dot" style="background:#a6e3a1"></span>output = 1</span>
+    <span class="legend-item"><span class="dot" style="background:#f38ba8"></span>output = 0</span>
+    <span class="legend-item"><span class="dash" style="background:#89b4fa"></span>decision boundary</span>
+    <span class="legend-item"><span class="dash" style="background:#f38ba888;border-top:2px dashed #f38ba8;height:0"></span>failed attempts</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SECTION 2 — Space Transformation
+════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-label purple">02 — How the Hidden Layer Transforms Space</p>
+  <div class="row">
+    <div class="panel">
+      <p class="panel-title" style="color:#cba6f7">Input space</p>
+      <canvas id="c-original" width="200" height="200"></canvas>
+      <p class="caption">XOR in original space.<br>Points on opposite corners — not separable.</p>
+    </div>
+    <div style="display:flex;align-items:center;font-size:28px;color:#313244;padding:0 4px">→</div>
+    <div class="panel">
+      <p class="panel-title" style="color:#cba6f7">Transformed space <span style="font-size:10px;color:#585b70">(hidden layer activations)</span></p>
+      <canvas id="c-transformed" width="200" height="200"></canvas>
+      <p class="caption">Same points after hidden layer.<br>Now separable by a single line!</p>
+    </div>
+  </div>
+  <p style="text-align:center;font-size:10px;color:#45475a;margin-top:14px;">
+    The hidden layer "folds" the space — it rewrites the problem so the output neuron can solve it linearly.
+  </p>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SECTION 3 — Architecture
+════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-label" style="color:#89dceb;border-color:#89dceb">03 — MLP Architecture &nbsp;2 · 2 · 1</p>
+  <div class="panel" style="width:100%;max-width:760px;margin:0 auto;">
+    <canvas id="c-arch" width="720" height="210"></canvas>
+    <div class="legend-row">
+      <span class="legend-item"><span class="dot" style="background:#4f7fff"></span>Input</span>
+      <span class="legend-item"><span class="dot" style="background:#a855f7"></span>Hidden (sigmoid)</span>
+      <span class="legend-item"><span class="dot" style="background:#22d3a0"></span>Output (sigmoid)</span>
+      <span class="legend-item"><span class="dash" style="background:#2a2a4e;height:2px"></span>Weights W</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SECTION 4 — Loss Landscape
+════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-label yellow">04 — Loss Landscape &amp; Why Seed Matters</p>
+  <div class="panel" style="width:100%;max-width:760px;margin:0 auto;">
+    <canvas id="c-loss" width="720" height="240"></canvas>
+    <p class="caption" style="margin-top:12px;">
+      The seed sets the starting point in weight space. Gradient descent always goes downhill —<br>
+      it cannot escape a valley once it falls in. A bad seed → local minimum. A good seed → global minimum.
+    </p>
+  </div>
+</div>
+
+<script>
+// ─── Palette ───────────────────────────────────────────
+const C = {
+  bg:     "#181825",
+  panel:  "#1e1e2e",
+  border: "#313244",
+  text:   "#cdd6f4",
+  muted:  "#585b70",
+  green:  "#a6e3a1",
+  red:    "#f38ba8",
+  blue:   "#89b4fa",
+  purple: "#cba6f7",
+  teal:   "#22d3a0",
+  yellow: "#f9e2af",
+  node1:  "#4f7fff",
+  node2:  "#a855f7",
+  node3:  "#22d3a0",
+};
+
+// ─── Helpers ───────────────────────────────────────────
+function toCanvas(px, py, W, H, pad) {
+  return [pad + px*(W-2*pad), H - pad - py*(H-2*pad)];
+}
+
+function drawPoint(ctx, cx, cy, label, isOne, r=13) {
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.fillStyle   = isOne ? C.green : C.red;
+  ctx.fill();
+  ctx.strokeStyle = "#181825";
+  ctx.lineWidth   = 2;
+  ctx.stroke();
+  ctx.fillStyle     = "#181825";
+  ctx.font          = `bold 12px monospace`;
+  ctx.textAlign     = "center";
+  ctx.textBaseline  = "middle";
+  ctx.fillText(label, cx, cy);
+}
+
+function drawAxes(ctx, W, H, pad, xLabel="A", yLabel="B") {
+  ctx.strokeStyle = C.border;
+  ctx.lineWidth   = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad, pad); ctx.lineTo(pad, H-pad);
+  ctx.lineTo(W-pad, H-pad);
+  ctx.stroke();
+  ctx.fillStyle    = C.muted;
+  ctx.font         = "11px monospace";
+  ctx.textAlign    = "center";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText("0", pad,    H-pad+14);
+  ctx.fillText("1", W-pad,  H-pad+14);
+  ctx.fillText(xLabel, W/2, H-5);
+  ctx.save();
+  ctx.translate(10, H/2+4);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText(yLabel, 0, 0);
+  ctx.restore();
+  ctx.fillText("0", pad-14, H-pad+4);
+  ctx.fillText("1", pad-14, pad+6);
+}
+
+// ─── Section 1: AND / OR / XOR ────────────────────────
+const pts    = [[0,0],[0,1],[1,0],[1,1]];
+const ops    = {
+  "c-and": { labels:[0,0,0,1], line:{m:-1,q:1.5} },
+  "c-or":  { labels:[0,1,1,1], line:{m:-1,q:0.5} },
+  "c-xor": { labels:[0,1,1,0], line:null },
+};
+
+Object.entries(ops).forEach(([id, cfg]) => {
+  const canvas = document.getElementById(id);
+  const ctx    = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height, pad = 34;
+
+  ctx.fillStyle = C.bg; ctx.fillRect(0,0,W,H);
+  drawAxes(ctx, W, H, pad);
+
+  if (cfg.line) {
+    const {m,q} = cfg.line;
+    const x0d=-0.3, x1d=1.3;
+    const [cx0,cy0] = toCanvas(x0d, m*x0d+q, W, H, pad);
+    const [cx1,cy1] = toCanvas(x1d, m*x1d+q, W, H, pad);
+    ctx.strokeStyle = C.blue;
+    ctx.lineWidth   = 2;
+    ctx.setLineDash([7,5]);
+    ctx.beginPath(); ctx.moveTo(cx0,cy0); ctx.lineTo(cx1,cy1); ctx.stroke();
+    ctx.setLineDash([]);
+  } else {
+    // XOR failed attempts
+    ctx.strokeStyle = C.red+"88";
+    ctx.lineWidth   = 1.5;
+    ctx.setLineDash([5,4]);
+    [[0.5,-0.3,0.5,1.3],[- 0.3,0.5,1.3,0.5]].forEach(([x0d,y0d,x1d,y1d])=>{
+      const [cx0,cy0]=toCanvas(x0d,y0d,W,H,pad);
+      const [cx1,cy1]=toCanvas(x1d,y1d,W,H,pad);
+      ctx.beginPath(); ctx.moveTo(cx0,cy0); ctx.lineTo(cx1,cy1); ctx.stroke();
+    });
+    ctx.setLineDash([]);
+    ctx.fillStyle   = C.red;
+    ctx.font        = "bold 22px monospace";
+    ctx.textAlign   = "right";
+    ctx.textBaseline= "top";
+    ctx.fillText("?", W-10, 8);
+  }
+
+  pts.forEach(([px,py],i) => {
+    const [cx,cy] = toCanvas(px,py,W,H,pad);
+    drawPoint(ctx, cx, cy, cfg.labels[i], cfg.labels[i]===1);
+  });
+});
+
+// ─── Section 2: Space Transformation ──────────────────
+function drawOriginal() {
+  const canvas = document.getElementById("c-original");
+  const ctx    = canvas.getContext("2d");
+  const W=canvas.width, H=canvas.height, pad=34;
+  ctx.fillStyle=C.bg; ctx.fillRect(0,0,W,H);
+  drawAxes(ctx,W,H,pad);
+  const labels=[0,1,1,0];
+  pts.forEach(([px,py],i)=>{
+    const [cx,cy]=toCanvas(px,py,W,H,pad);
+    drawPoint(ctx,cx,cy,labels[i],labels[i]===1);
+  });
+}
+
+function drawTransformed() {
+  const canvas = document.getElementById("c-transformed");
+  const ctx    = canvas.getContext("2d");
+  const W=canvas.width, H=canvas.height, pad=34;
+  ctx.fillStyle=C.bg; ctx.fillRect(0,0,W,H);
+
+  // Custom axis labels
+  ctx.strokeStyle=C.border; ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(pad,pad); ctx.lineTo(pad,H-pad); ctx.lineTo(W-pad,H-pad);
+  ctx.stroke();
+  ctx.fillStyle=C.muted; ctx.font="11px monospace";
+  ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+  ctx.fillText("h₁", W/2, H-5);
+  ctx.save(); ctx.translate(10,H/2+4); ctx.rotate(-Math.PI/2);
+  ctx.fillText("h₂",0,0); ctx.restore();
+
+  // Transformed positions (didactic — shows separability clearly)
+  const transformed = [[0.82,0.82],[0.18,0.82],[0.18,0.18],[0.82,0.18]];
+  const labels = [0,1,1,0];
+
+  // Decision line in transformed space
+  const [cx0,cy0]=toCanvas(-0.1,1.1,W,H,pad);
+  const [cx1,cy1]=toCanvas(1.1,-0.1,W,H,pad);
+  ctx.strokeStyle=C.green; ctx.lineWidth=2;
+  ctx.setLineDash([7,5]);
+  ctx.beginPath(); ctx.moveTo(cx0,cy0); ctx.lineTo(cx1,cy1); ctx.stroke();
+  ctx.setLineDash([]);
+
+  transformed.forEach(([px,py],i)=>{
+    const [cx,cy]=toCanvas(px,py,W,H,pad);
+    drawPoint(ctx,cx,cy,labels[i],labels[i]===1);
+  });
+}
+
+drawOriginal();
+drawTransformed();
+
+// ─── Section 3: Architecture ───────────────────────────
+function drawArch() {
+  const canvas = document.getElementById("c-arch");
+  const ctx    = canvas.getContext("2d");
+  const W=canvas.width, H=canvas.height;
+  ctx.fillStyle=C.bg; ctx.fillRect(0,0,W,H);
+
+  const nodes = {
+    x1:  {x:110, y:65,  color:C.node1, top:"A",  bot:"x₁"},
+    x2:  {x:110, y:155, color:C.node1, top:"B",  bot:"x₂"},
+    h1:  {x:360, y:65,  color:C.node2, top:"h₁", bot:"σ"},
+    h2:  {x:360, y:155, color:C.node2, top:"h₂", bot:"σ"},
+    out: {x:610, y:110, color:C.node3, top:"C",  bot:"σ"},
+  };
+
+  const edges = [
+    ["x1","h1","W¹"],["x1","h2","W¹"],
+    ["x2","h1","W¹"],["x2","h2","W¹"],
+    ["h1","out","W²"],["h2","out","W²"],
+  ];
+
+  // Layer labels
+  [["Input",110],["Hidden layer",360],["Output",610]].forEach(([lbl,x])=>{
+    ctx.fillStyle=C.muted; ctx.font="11px monospace";
+    ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+    ctx.fillText(lbl, x, 18);
+  });
+
+  // Edges
+  edges.forEach(([s,d,w])=>{
+    const {x:x0,y:y0}=nodes[s], {x:x1,y:y1}=nodes[d];
+    ctx.strokeStyle="#2a2a4e"; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+    ctx.fillStyle=C.muted+"aa"; ctx.font="9px monospace";
+    ctx.textAlign="center"; ctx.textBaseline="bottom";
+    ctx.fillText(w,(x0+x1)/2,(y0+y1)/2-2);
+  });
+
+  // Bias
+  ctx.fillStyle=C.muted; ctx.font="10px monospace"; ctx.textAlign="left";
+  ctx.fillText("+ b¹", 372, 198);
+  ctx.fillText("+ b²", 622, 148);
+
+  // Nodes
+  const r=26;
+  Object.values(nodes).forEach(({x,y,color,top,bot})=>{
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle="#1e1e2e"; ctx.fill();
+    ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.stroke();
+    ctx.fillStyle=color; ctx.font="bold 13px monospace";
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText(top,x,y-6);
+    ctx.font="10px monospace"; ctx.fillStyle=color+"aa";
+    ctx.fillText(bot,x,y+9);
+  });
+}
+drawArch();
+
+// ─── Section 4: Loss Landscape ────────────────────────
+function drawLoss() {
+  const canvas = document.getElementById("c-loss");
+  const ctx    = canvas.getContext("2d");
+  const W=canvas.width, H=canvas.height;
+  const padL=50, padR=30, padT=30, padB=50;
+  const gW=W-padL-padR, gH=H-padT-padB;
+
+  ctx.fillStyle=C.bg; ctx.fillRect(0,0,W,H);
+
+  // Generate landscape
+  const N=600;
+  const xs=[], ys=[];
+  for(let i=0;i<N;i++){
+    const t=i/(N-1);
+    const xv=t*10;
+    const yv=0.9*Math.sin(0.9*xv)+0.4*Math.sin(2.1*xv)+0.15*Math.sin(4.5*xv)
+              +0.08*xv-0.04*xv**2+0.004*xv**3+2.5;
+    xs.push(t); ys.push(yv);
+  }
+  const ymin=Math.min(...ys), ymax=Math.max(...ys);
+  const yn=ys.map(v=>(v-ymin)/(ymax-ymin)*0.88+0.06);
+
+  function toP(xi,yi){
+    return [padL+xi*gW, padT+gH-(yi*gH)];
+  }
+
+  // Fill under curve
+  ctx.beginPath();
+  ctx.moveTo(...toP(xs[0],0));
+  xs.forEach((x,i)=>ctx.lineTo(...toP(x,yn[i])));
+  ctx.lineTo(...toP(xs[N-1],0));
+  ctx.closePath();
+  ctx.fillStyle=C.blue+"18"; ctx.fill();
+
+  // Curve
+  ctx.beginPath();
+  xs.forEach((x,i)=>{
+    const [px,py]=toP(x,yn[i]);
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  });
+  ctx.strokeStyle=C.blue; ctx.lineWidth=2.5; ctx.stroke();
+
+  // Axes
+  ctx.strokeStyle=C.border; ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(padL,padT); ctx.lineTo(padL,padT+gH); ctx.lineTo(padL+gW,padT+gH);
+  ctx.stroke();
+  ctx.fillStyle=C.muted; ctx.font="11px monospace";
+  ctx.textAlign="center";
+  ctx.fillText("Weight space  (simplified 1D projection)", padL+gW/2, H-8);
+  ctx.save(); ctx.translate(14,padT+gH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText("Loss",0,0); ctx.restore();
+
+  // Find local minima and global minimum (simple scan)
+  function localMins(arr, order=25){
+    const res=[];
+    for(let i=order;i<arr.length-order;i++){
+      let ok=true;
+      for(let j=i-order;j<=i+order;j++) if(j!==i&&arr[j]<=arr[i]){ok=false;break;}
+      if(ok) res.push(i);
+    }
+    return res;
+  }
+  const lmIdxs = localMins(yn);
+  const gmIdx  = yn.indexOf(Math.min(...yn));
+
+  function markMin(idx, color, lines, offsetY=0.08){
+    const [px,py]=toP(xs[idx],yn[idx]);
+    ctx.beginPath(); ctx.arc(px,py,7,0,Math.PI*2);
+    ctx.fillStyle=color; ctx.fill();
+    ctx.strokeStyle="#181825"; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle=color; ctx.font="10px monospace";
+    ctx.textAlign="center"; ctx.textBaseline="bottom";
+    const lineH=13;
+    lines.forEach((l,i)=>{
+      ctx.fillText(l, px, py - 12 - (lines.length-1-i)*lineH);
+    });
+  }
+
+  if(lmIdxs.length>=1) markMin(lmIdxs[0], C.red, ["local","minimum"]);
+  if(lmIdxs.length>=2) markMin(lmIdxs[1], C.red, ["local","minimum"]);
+  markMin(gmIdx, C.green, ["global","minimum"]);
+
+  // Starting points
+  function drawStart(xi, color, lines){
+    const [px,py]=toP(xs[xi],yn[xi]);
+    // triangle marker
+    ctx.beginPath();
+    ctx.moveTo(px, py-18);
+    ctx.lineTo(px-8, py-28);
+    ctx.lineTo(px+8, py-28);
+    ctx.closePath();
+    ctx.fillStyle=color; ctx.fill();
+    ctx.fillStyle=color; ctx.font="10px monospace";
+    ctx.textAlign="center"; ctx.textBaseline="bottom";
+    lines.forEach((l,i)=>ctx.fillText(l, px, py-30-(lines.length-1-i)*13));
+  }
+
+  // bad seed: near first local min
+  const badIdx  = lmIdxs.length>=1 ? Math.max(0, lmIdxs[0]-40) : 80;
+  // good seed: near global min
+  const goodIdx = Math.min(N-1, gmIdx+50);
+
+  drawStart(badIdx,  C.red,   ["seed=42","(bad start)"]);
+  drawStart(goodIdx, C.green, ["seed=1","(good start)"]);
+
+  // Arrows (gradient descent path)
+  function arrow(fromIdx, toIdx, color){
+    const [x0,y0]=toP(xs[fromIdx],yn[fromIdx]);
+    const [x1,y1]=toP(xs[toIdx],  yn[toIdx]+0.03);
+    ctx.strokeStyle=color; ctx.lineWidth=1.5;
+    ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+    ctx.setLineDash([]);
+    // arrowhead
+    const angle=Math.atan2(y1-y0,x1-x0);
+    ctx.beginPath();
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(x1-10*Math.cos(angle-0.4),y1-10*Math.sin(angle-0.4));
+    ctx.lineTo(x1-10*Math.cos(angle+0.4),y1-10*Math.sin(angle+0.4));
+    ctx.closePath();
+    ctx.fillStyle=color; ctx.fill();
+  }
+
+  if(lmIdxs.length>=1) arrow(badIdx,  lmIdxs[0], C.red);
+  arrow(goodIdx, gmIdx, C.green);
+}
+drawLoss();
+</script>
+</body>
+</html>
